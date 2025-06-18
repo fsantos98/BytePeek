@@ -163,14 +163,29 @@ function InstructionPanel() {
   const [showModal, setShowModal] = useState(false);
   const [instructionType, setInstructionType] = useState("");
   const [label, setLabel] = useState("");
+  const [color, setColor] = useState("#000000");
+  const [holdValue, setholdValue] = useState(0);
+  const [bytesLength, setbytesLength] = useState(0);
   const [instructions, setInstructions] = useState<
-    { type: string; label: string }[]
+    {
+      type: string;
+      label: string;
+      bytesLength: number;
+      holdValue: number;
+      color: string;
+    }[]
   >([]);
 
   const handleAdd = () => {
-    setInstructions([...instructions, { type: instructionType, label }]);
+    setInstructions([
+      ...instructions,
+      { type: instructionType, label, bytesLength, holdValue, color },
+    ]);
     setInstructionType("");
     setLabel("");
+    setholdValue(0);
+    setbytesLength(0);
+    setColor("#000000");
     setShowModal(false);
   };
 
@@ -197,8 +212,11 @@ function InstructionPanel() {
         <thead>
           <tr>
             <th>#</th>
-            <th>Instruction</th>
+            <th>Type</th>
             <th>Label</th>
+            <th>Length</th>
+            <th>Hold Value</th>
+            <th>Color</th>
             <th>Result</th>
           </tr>
         </thead>
@@ -208,6 +226,9 @@ function InstructionPanel() {
               <td>{idx + 1}</td>
               <td>{inst.type}</td>
               <td>{inst.label}</td>
+              <td>{inst.bytesLength}</td>
+              <td>{inst.holdValue}</td>
+              <td>{inst.color}</td>
               <td></td>
             </tr>
           ))}
