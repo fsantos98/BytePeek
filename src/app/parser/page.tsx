@@ -33,8 +33,7 @@ function UploadButton({
       const byteArray = new Uint8Array(arrayBuffer);
       console.log("Byte array:", byteArray);
 
-      const previewBits = byteArray.slice(0, 512);
-      onFileLoaded(JSON.stringify(Array.from(previewBits)));
+      onFileLoaded(JSON.stringify(Array.from(byteArray)));
     };
 
     reader.readAsArrayBuffer(file);
@@ -62,38 +61,42 @@ function BitsTable({
   setSelecteIndexesRange: React.Dispatch<React.SetStateAction<number[]>>;
 }) {
   const bytesPerRow = 16;
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const rowsPerPage = 32;
+  const bytesPerPage = bytesPerRow * rowsPerPage;
+
+  const [page, setPage] = useState(0);
+
+  const totalPages = Math.ceil(bytes.length / bytesPerPage);
+
+  // Slice the bytes for the current page
+  const pageStart = page * bytesPerPage;
+  const pageEnd = Math.min(pageStart + bytesPerPage, bytes.length);
+  const pageBytes = bytes.slice(pageStart, pageEnd);
 
   const rows = [];
-  for (let i = 0; i < bytes.length; i += bytesPerRow) {
-    const rowBytes = bytes.slice(i, i + bytesPerRow);
+  for (let i = 0; i < pageBytes.length; i += bytesPerRow) {
+    const rowBytes = pageBytes.slice(i, i + bytesPerRow);
+    const globalRowStart = pageStart + i;
 
     rows.push(
-      <tr key={i}>
-        <td className={styles.bitsMono}>{i}</td>
+      <tr key={globalRowStart}>
+        <td className={styles.bitsMono}>{globalRowStart}</td>
         <td className={styles.bitsMono}>
           {rowBytes.map((b, idx) => {
-            const byteIndex = i + idx;
+            const byteIndex = globalRowStart + idx;
             let className = undefined;
-            if (hoveredIndex === byteIndex) {
-              className = styles.byteHighlight;
-            } else if (
+            if (
               byteIndex >= selecteIndexesRange[0] &&
               byteIndex <= selecteIndexesRange[1]
             ) {
               className = styles.byteSelected;
             }
-
             return (
               <React.Fragment key={byteIndex}>
                 <span
                   className={className}
-                  onMouseEnter={() => setHoveredIndex(byteIndex)}
-                  onMouseLeave={() => setHoveredIndex(null)}
                   onClick={() => {
-                    setSelecteIndexesRange((prev) => {
-                      return [prev[1], byteIndex];
-                    });
+                    setSelecteIndexesRange((prev) => [prev[1], byteIndex]);
                   }}
                   style={{ padding: "0 2px", cursor: "pointer" }}
                   data-index={byteIndex}
@@ -107,28 +110,21 @@ function BitsTable({
         </td>
         <td className={styles.bitsMono}>
           {rowBytes.map((b, idx) => {
-            const byteIndex = i + idx;
+            const byteIndex = globalRowStart + idx;
             const char = b >= 32 && b <= 126 ? String.fromCharCode(b) : ".";
             let className = undefined;
-            if (hoveredIndex === byteIndex) {
-              className = styles.byteHighlight;
-            } else if (
+            if (
               byteIndex >= selecteIndexesRange[0] &&
               byteIndex <= selecteIndexesRange[1]
             ) {
               className = styles.byteSelected;
             }
-
             return (
               <span
                 key={byteIndex}
                 className={className}
-                onMouseEnter={() => setHoveredIndex(byteIndex)}
-                onMouseLeave={() => setHoveredIndex(null)}
                 onClick={() => {
-                  setSelecteIndexesRange((prev) => {
-                    return [prev[1], byteIndex];
-                  });
+                  setSelecteIndexesRange((prev) => [prev[1], byteIndex]);
                 }}
                 style={{ padding: "0 2px", cursor: "pointer" }}
                 data-index={byteIndex}
@@ -142,8 +138,40 @@ function BitsTable({
     );
   }
 
+  // Optional: handle mouse wheel for page navigation
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.deltaY > 0 && page < totalPages - 1) {
+      setPage(page + 1);
+    } else if (e.deltaY < 0 && page > 0) {
+      setPage(page - 1);
+    }
+  };
+
   return (
-    <section className={styles.bitsSection}>
+    <section className={styles.bitsSection} onWheel={handleWheel} tabIndex={0}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <button
+          onClick={() => setPage((p) => Math.max(0, p - 1))}
+          disabled={page === 0}
+        >
+          Previous
+        </button>
+        <span>
+          Page {page + 1} / {totalPages}
+        </span>
+        <button
+          onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+          disabled={page === totalPages - 1}
+        >
+          Next
+        </button>
+      </div>
       <table className={styles.bitsTable}>
         <thead>
           <tr>
