@@ -53,7 +53,7 @@
 }
 
 .bitsSection {
-  flex: 6 1 0%;
+  flex: 5 1 0%;
   background: #23272f;
   border-radius: 12px;
   box-shadow: 0 2px 16px #0003;
@@ -66,14 +66,14 @@
 }
 
 .instructionSection {
-  flex: 4 1 0%;
+  flex: 5 1 0%;
   background: #23272f;
   border-radius: 12px;
   box-shadow: 0 2px 16px #0003;
   padding: 1rem;
   overflow-x: auto;
   margin: 0;
-  min-width: 0;
+  min-width: 500px;
   display: flex;
   flex-direction: column;
 }
