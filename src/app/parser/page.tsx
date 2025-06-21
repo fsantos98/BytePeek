@@ -55,10 +55,18 @@ function BitsTable({
   bytes,
   selecteIndexesRange,
   setSelecteIndexesRange,
+  instructions, // <-- Add this prop
 }: {
   bytes: number[];
   selecteIndexesRange: number[];
   setSelecteIndexesRange: React.Dispatch<React.SetStateAction<number[]>>;
+  instructions: {
+    type: string;
+    label: string;
+    bytesLength: number;
+    holdValue: number;
+    color: string;
+  }[];
 }) {
   const bytesPerRow = 16;
   const rowsPerPage = 32;
@@ -73,6 +81,32 @@ function BitsTable({
   const pageEnd = Math.min(pageStart + bytesPerPage, bytes.length);
   const pageBytes = bytes.slice(pageStart, pageEnd);
 
+  const getHighlightProps = (byteIndex: number) => {
+    if (
+      byteIndex >= selecteIndexesRange[0] &&
+      byteIndex <= selecteIndexesRange[1]
+    ) {
+      return { className: styles.byteSelected, style: {} };
+    }
+    let base_instruction_index = 0;
+    for (const instruction of instructions) {
+      const start = base_instruction_index + instruction.holdValue;
+      const end =
+        base_instruction_index +
+        instruction.holdValue +
+        instruction.bytesLength;
+      base_instruction_index += instruction.bytesLength;
+      if (byteIndex >= start && byteIndex < end) {
+        return {
+          className: styles.byteHighlight,
+          style: { background: instruction.color },
+        };
+      }
+    }
+    // Default: no highlight
+    return { className: "", style: {} };
+  };
+
   const rows = [];
   for (let i = 0; i < pageBytes.length; i += bytesPerRow) {
     const rowBytes = pageBytes.slice(i, i + bytesPerRow);
@@ -84,21 +118,16 @@ function BitsTable({
         <td className={styles.bitsMono}>
           {rowBytes.map((b, idx) => {
             const byteIndex = globalRowStart + idx;
-            let className = undefined;
-            if (
-              byteIndex >= selecteIndexesRange[0] &&
-              byteIndex <= selecteIndexesRange[1]
-            ) {
-              className = styles.byteSelected;
-            }
+            const { className, style } = getHighlightProps(byteIndex);
+
             return (
               <React.Fragment key={byteIndex}>
                 <span
                   className={className}
+                  style={style}
                   onClick={() => {
                     setSelecteIndexesRange((prev) => [prev[1], byteIndex]);
                   }}
-                  style={{ padding: "0 2px", cursor: "pointer" }}
                   data-index={byteIndex}
                 >
                   {b.toString(16).padStart(2, "0").toUpperCase()}
@@ -112,21 +141,15 @@ function BitsTable({
           {rowBytes.map((b, idx) => {
             const byteIndex = globalRowStart + idx;
             const char = b >= 32 && b <= 126 ? String.fromCharCode(b) : ".";
-            let className = undefined;
-            if (
-              byteIndex >= selecteIndexesRange[0] &&
-              byteIndex <= selecteIndexesRange[1]
-            ) {
-              className = styles.byteSelected;
-            }
+            const { className, style } = getHighlightProps(byteIndex);
             return (
               <span
                 key={byteIndex}
                 className={className}
+                style={{ ...style, padding: "0 0.5px", cursor: "pointer" }}
                 onClick={() => {
                   setSelecteIndexesRange((prev) => [prev[1], byteIndex]);
                 }}
-                style={{ padding: "0 2px", cursor: "pointer" }}
                 data-index={byteIndex}
               >
                 {char}
@@ -186,27 +209,40 @@ function BitsTable({
   );
 }
 
-// Add a new component for the text box
-function InstructionPanel() {
+// Update InstructionPanel to receive and use instructions/setInstructions as props
+function InstructionPanel({
+  instructions,
+  setInstructions,
+}: {
+  instructions: {
+    type: string;
+    label: string;
+    bytesLength: number;
+    holdValue: number;
+    color: string;
+  }[];
+  setInstructions: React.Dispatch<
+    React.SetStateAction<
+      {
+        type: string;
+        label: string;
+        bytesLength: number;
+        holdValue: number;
+        color: string;
+      }[]
+    >
+  >;
+}) {
   const [showModal, setShowModal] = useState(false);
   const [instructionType, setInstructionType] = useState("");
   const [label, setLabel] = useState("");
   const [color, setColor] = useState("#000000");
   const [holdValue, setholdValue] = useState(0);
   const [bytesLength, setbytesLength] = useState(0);
-  const [instructions, setInstructions] = useState<
-    {
-      type: string;
-      label: string;
-      bytesLength: number;
-      holdValue: number;
-      color: string;
-    }[]
-  >([]);
 
   const handleAdd = () => {
-    setInstructions([
-      ...instructions,
+    setInstructions((prev) => [
+      ...prev,
       { type: instructionType, label, bytesLength, holdValue, color },
     ]);
     setInstructionType("");
@@ -283,6 +319,24 @@ function InstructionPanel() {
                 onChange={(e) => setLabel(e.target.value)}
               />
             </label>
+            <label>
+              Number of Bytes:
+              <input
+                type="text"
+                value={bytesLength}
+                onChange={(e) => setbytesLength(parseInt(e.target.value))}
+                autoFocus
+              />
+            </label>
+            <label>
+              Color:
+              <input
+                type="text"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                autoFocus
+              />
+            </label>
             <div
               style={{
                 marginTop: "1rem",
@@ -307,6 +361,15 @@ function MainContent() {
   const [selecteIndexesRange, setSelecteIndexesRange] = useState<number[]>([
     -1, -1,
   ]);
+  const [instructions, setInstructions] = useState<
+    {
+      type: string;
+      label: string;
+      bytesLength: number;
+      holdValue: number;
+      color: string;
+    }[]
+  >([]);
 
   return (
     <main className={styles.main} style={{ marginTop: 0 }}>
@@ -324,8 +387,12 @@ function MainContent() {
             bytes={bits}
             selecteIndexesRange={selecteIndexesRange}
             setSelecteIndexesRange={setSelecteIndexesRange}
+            instructions={instructions} // <-- Pass instructions here
           />
-          <InstructionPanel />
+          <InstructionPanel
+            instructions={instructions}
+            setInstructions={setInstructions}
+          />
           <UploadButton
             onFileLoaded={(str) => setBits(JSON.parse(str))}
             fixedBottom
