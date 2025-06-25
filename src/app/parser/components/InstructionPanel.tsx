@@ -1,51 +1,18 @@
 import { useState } from "react";
 import styles from "../page.module.css";
+import { Instruction } from "../types/types";
+import InstructionsModal from "./InstructionsModal";
 
-// Update InstructionPanel to receive and use instructions/setInstructions as props
 export default function InstructionPanel({
   instructions,
   setInstructions,
   bytes,
 }: {
-  instructions: {
-    type: string;
-    label: string;
-    bytesLength: number;
-    holdValue: number;
-    color: string;
-  }[];
-  setInstructions: React.Dispatch<
-    React.SetStateAction<
-      {
-        type: string;
-        label: string;
-        bytesLength: number;
-        holdValue: number;
-        color: string;
-      }[]
-    >
-  >;
+  instructions: Instruction[];
+  setInstructions: React.Dispatch<React.SetStateAction<Instruction[]>>;
   bytes: number[];
 }) {
   const [showModal, setShowModal] = useState(false);
-  const [instructionType, setInstructionType] = useState("");
-  const [label, setLabel] = useState("");
-  const [color, setColor] = useState("#000000");
-  const [holdValue, setholdValue] = useState(0);
-  const [bytesLength, setbytesLength] = useState(0);
-
-  const handleAdd = () => {
-    setInstructions((prev) => [
-      ...prev,
-      { type: instructionType, label, bytesLength, holdValue, color },
-    ]);
-    setInstructionType("");
-    setLabel("");
-    setholdValue(0);
-    setbytesLength(0);
-    setColor("#000000");
-    setShowModal(false);
-  };
 
   return (
     <section className={styles.instructionSection}>
@@ -171,58 +138,10 @@ export default function InstructionPanel({
         </tbody>
       </table>
       {showModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <h3>Add Instruction</h3>
-            <label>
-              Type:
-              <input
-                type="text"
-                value={instructionType}
-                onChange={(e) => setInstructionType(e.target.value)}
-                autoFocus
-              />
-            </label>
-            <label>
-              Label:
-              <input
-                type="text"
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-              />
-            </label>
-            <label>
-              Number of Bytes:
-              <input
-                type="text"
-                value={bytesLength}
-                onChange={(e) => setbytesLength(parseInt(e.target.value))}
-                autoFocus
-              />
-            </label>
-            <label>
-              Color:
-              <input
-                type="text"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                autoFocus
-              />
-            </label>
-            <div
-              style={{
-                marginTop: "1rem",
-                display: "flex",
-                gap: "1rem",
-              }}
-            >
-              <button onClick={handleAdd} disabled={!instructionType || !label}>
-                Add
-              </button>
-              <button onClick={() => setShowModal(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
+        <InstructionsModal
+          setShowModal={setShowModal}
+          setInstructions={setInstructions}
+        />
       )}
     </section>
   );
