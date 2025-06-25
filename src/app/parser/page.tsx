@@ -453,35 +453,29 @@ function MainContent() {
 
   return (
     <main className={styles.main} style={{ marginTop: 0 }}>
-      {bits.length > 0 ? (
-        <div
-          style={{
-            display: "flex",
-            width: "70%",
-            gap: "2rem",
-            alignItems: "flex-start",
-            marginTop: "1rem",
-          }}
-        >
-          <BitsTable
-            bytes={bits}
-            selecteIndexesRange={selecteIndexesRange}
-            setSelecteIndexesRange={setSelecteIndexesRange}
-            instructions={instructions} // <-- Pass instructions here
-          />
-          <InstructionPanel
-            instructions={instructions}
-            setInstructions={setInstructions}
-            bytes={bits}
-          />
-          <UploadButton
-            onFileLoaded={(str) => setBits(JSON.parse(str))}
-            fixedBottom
-          />
-        </div>
-      ) : (
-        <UploadButton onFileLoaded={(str) => setBits(JSON.parse(str))} />
-      )}
+      <div className={styles.tablesWrapper}>
+        {bits.length > 0 ? (
+          <>
+            <BitsTable
+              bytes={bits}
+              selecteIndexesRange={selecteIndexesRange}
+              setSelecteIndexesRange={setSelecteIndexesRange}
+              instructions={instructions}
+            />
+            <InstructionPanel
+              instructions={instructions}
+              setInstructions={setInstructions}
+              bytes={bits}
+            />
+            <UploadButton
+              onFileLoaded={(str) => setBits(JSON.parse(str))}
+              fixedBottom
+            />
+          </>
+        ) : (
+          <UploadButton onFileLoaded={(str) => setBits(JSON.parse(str))} />
+        )}
+      </div>
       <StatusBar
         text={`Selected: ${selecteIndexesRange[0]} - ${selecteIndexesRange[1]}`}
       />
