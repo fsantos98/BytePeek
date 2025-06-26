@@ -22,6 +22,8 @@
   justify-content: center;
   position: relative;
   min-height: 0;
+  /* Ensure full width for layout */
+  width: 100vw;
 }
 
 .uploadButton {
@@ -32,7 +34,8 @@
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  margin: 2rem 0;
+  margin: 2rem auto; /* Center horizontally */
+  display: block; /* Allow margin auto to center */
   transition: background 0.2s;
   box-shadow: 0 2px 8px #0002;
   border: none;
@@ -52,28 +55,39 @@
   margin: 0;
 }
 
+.tablesWrapper {
+  display: flex;
+  flex-direction: row;
+  width: 85vw; /* 85% of the viewport width */
+  max-width: 1700px;
+  gap: 2rem;
+  margin: 0 auto;
+}
+
 .bitsSection {
-  flex: 6 1 0%;
+  flex: 0 0 65%;
+  width: 65%;
+  min-width: 0;
   background: #23272f;
   border-radius: 12px;
   box-shadow: 0 2px 16px #0003;
   padding: 1rem;
   overflow-x: auto;
   margin: 0;
-  min-width: 960px;
   display: flex;
   flex-direction: column;
 }
 
 .instructionSection {
-  flex: 4 1 0%;
+  flex: 0 0 35%;
+  width: 35%;
+  min-width: 0;
   background: #23272f;
   border-radius: 12px;
   box-shadow: 0 2px 16px #0003;
   padding: 1rem;
   overflow-x: auto;
   margin: 0;
-  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -230,4 +244,13 @@
 .modal button:disabled {
   background: #444;
   cursor: not-allowed;
+}
+
+.modal select {
+  background: #181a20;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  margin-left: 0.5rem;
 }
