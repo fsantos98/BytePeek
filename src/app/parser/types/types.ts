@@ -9,4 +9,5 @@ export type Instruction = {
 export enum InstructionType {
   STRING = "STRING",
   DECIMAL = "DECIMAL",
+  RAW = "RAW",
 }

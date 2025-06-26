@@ -16,6 +16,46 @@ export default function InstructionPanel({
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
+  const handleDelete = (idx: number) => {
+    setInstructions((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const moveInstruction = (from: number, to: number) => {
+    if (to < 0 || to >= instructions.length) return;
+    setInstructions((prev) => {
+      const newInstructions = [...prev];
+      const [moved] = newInstructions.splice(from, 1);
+      newInstructions.splice(to, 0, moved);
+      return newInstructions;
+    });
+  };
+
+  const handleDragStart = (idx: number) => setDraggedIdx(idx);
+
+  const handleDragOver = (idx: number, e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverIdx(idx);
+  };
+
+  const handleDragLeave = () => setDragOverIdx(null);
+
+  const handleDrop = (idx: number) => {
+    if (draggedIdx === null || draggedIdx === idx) return;
+    setInstructions((prev) => {
+      const newInstructions = [...prev];
+      const [removed] = newInstructions.splice(draggedIdx, 1);
+      newInstructions.splice(idx, 0, removed);
+      return newInstructions;
+    });
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
+
   return (
     <section className={styles.instructionSection}>
       <div
@@ -117,59 +157,14 @@ export default function InstructionPanel({
                 .join("");
               currentIndex = end;
 
-              const handleDelete = () => {
-                setInstructions((prev) => prev.filter((_, i) => i !== idx));
-              };
-
-              const moveInstruction = (from: number, to: number) => {
-                if (to < 0 || to >= instructions.length) return;
-                setInstructions((prev) => {
-                  const newInstructions = [...prev];
-                  const [moved] = newInstructions.splice(from, 1);
-                  newInstructions.splice(to, 0, moved);
-                  return newInstructions;
-                });
-              };
-
-              // On drag start
-              const handleDragStart = () => setDraggedIdx(idx);
-
-              // On drag over
-              const handleDragOver = (e: React.DragEvent) => {
-                e.preventDefault();
-                setDragOverIdx(idx);
-              };
-
-              // On drag leave
-              const handleDragLeave = () => setDragOverIdx(null);
-
-              // On drop
-              const handleDrop = () => {
-                if (draggedIdx === null || draggedIdx === idx) return;
-                setInstructions((prev) => {
-                  const newInstructions = [...prev];
-                  const [removed] = newInstructions.splice(draggedIdx, 1);
-                  newInstructions.splice(idx, 0, removed);
-                  return newInstructions;
-                });
-                setDraggedIdx(null);
-                setDragOverIdx(null);
-              };
-
-              // On drag end
-              const handleDragEnd = () => {
-                setDraggedIdx(null);
-                setDragOverIdx(null);
-              };
-
               return (
                 <tr
                   key={idx}
                   draggable
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragOver={(e) => handleDragOver(idx, e)}
                   onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
+                  onDrop={() => handleDrop(idx)}
                   onDragEnd={handleDragEnd}
                   style={{
                     background:
@@ -186,9 +181,13 @@ export default function InstructionPanel({
                   <td>{inst.bytesLength}</td>
                   <td>{start}</td>
                   <td>{inst.color}</td>
-                  <td>{resultStr}</td>
                   <td>
-                    <span onClick={handleDelete}>🗑️</span>
+                    {resultStr.length > 10
+                      ? resultStr.slice(0, 10) + "➕"
+                      : resultStr}
+                  </td>
+                  <td>
+                    <span onClick={() => handleDelete(idx)}>🗑️</span>
                     <span onClick={() => moveInstruction(idx, idx - 1)}>
                       ⬆️
                     </span>
