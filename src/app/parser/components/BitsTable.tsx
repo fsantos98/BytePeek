@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styles from "../page.module.css";
+import { Instruction } from "../types/types";
 
 export default function BitsTable({
   bytes,
@@ -10,13 +11,7 @@ export default function BitsTable({
   bytes: number[];
   selecteIndexesRange: number[];
   setSelecteIndexesRange: React.Dispatch<React.SetStateAction<number[]>>;
-  instructions: {
-    type: string;
-    label: string;
-    bytesLength: number;
-    holdValue: number;
-    color: string;
-  }[];
+  instructions: Instruction[];
 }) {
   const bytesPerRow = 16;
   const rowsPerPage = 32;
@@ -40,11 +35,8 @@ export default function BitsTable({
     }
     let base_instruction_index = 0;
     for (const instruction of instructions) {
-      const start = base_instruction_index + instruction.holdValue;
-      const end =
-        base_instruction_index +
-        instruction.holdValue +
-        instruction.bytesLength;
+      const start = base_instruction_index;
+      const end = base_instruction_index + instruction.bytesLength;
       base_instruction_index += instruction.bytesLength;
       if (byteIndex >= start && byteIndex < end) {
         return {

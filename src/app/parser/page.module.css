@@ -92,6 +92,13 @@
   flex-direction: column;
 }
 
+.instructionSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .bitsTable {
   width: 100%;
   border-collapse: collapse;

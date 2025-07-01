@@ -1,24 +1,17 @@
 import { useState } from "react";
 import BitsTable from "./BitsTable";
-import InstructionPanel from "./InstructionPanel";
 import UploadButton from "./UploadButton";
 import StatusBar from "./StatusBar";
 import styles from "../page.module.css";
+import InstructionsPanel from "./InstructionsPanel";
+import { Instruction } from "../types/types";
 
 export default function MainContent() {
   const [bits, setBits] = useState<number[]>([]);
   const [selecteIndexesRange, setSelecteIndexesRange] = useState<number[]>([
     -1, -1,
   ]);
-  const [instructions, setInstructions] = useState<
-    {
-      type: string;
-      label: string;
-      bytesLength: number;
-      holdValue: number;
-      color: string;
-    }[]
-  >([]);
+  const [instructions, setInstructions] = useState<Instruction[]>([]);
 
   return (
     <main className={styles.main} style={{ marginTop: 0 }}>
@@ -31,7 +24,7 @@ export default function MainContent() {
               setSelecteIndexesRange={setSelecteIndexesRange}
               instructions={instructions}
             />
-            <InstructionPanel
+            <InstructionsPanel
               instructions={instructions}
               setInstructions={setInstructions}
               bytes={bits}

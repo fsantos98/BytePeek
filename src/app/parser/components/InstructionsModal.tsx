@@ -9,20 +9,28 @@ export default function InstructionsModal({
   setInstructions: React.Dispatch<React.SetStateAction<Instruction[]>>;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [instructionType, setInstructionType] = useState("");
+  const [instructionType, setInstructionType] = useState<InstructionType>();
   const [label, setLabel] = useState("");
   const [color, setColor] = useState("green");
-  const [holdValue, setholdValue] = useState(0);
   const [bytesLength, setbytesLength] = useState(0);
+  const [useRefValue, setUseRefValue] = useState(false);
 
   const handleAdd = () => {
     setInstructions((prev) => [
       ...prev,
-      { type: instructionType, label, bytesLength, holdValue, color },
+      {
+        type: instructionType as InstructionType,
+        label,
+        bytesLength,
+        color,
+        offset:
+          prev.length > 0
+            ? prev[prev.length - 1].offset + prev[prev.length - 1].bytesLength
+            : 0,
+      },
     ]);
-    setInstructionType("");
+    setInstructionType(InstructionType.RAW);
     setLabel("");
-    setholdValue(0);
     setbytesLength(0);
     setColor("green");
     setShowModal(false);
@@ -58,6 +66,11 @@ export default function InstructionsModal({
         </label>
         <label>
           Number of Bytes:
+          <input
+            type="checkbox"
+            checked={useRefValue}
+            onChange={(e) => setUseRefValue(e.target.checked)}
+          />
           <input
             type="text"
             value={bytesLength}

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import styles from "../page.module.css";
-import { Instruction } from "../types/types";
+import { Instruction, InstructionType } from "../types/types";
 import InstructionsModal from "./InstructionsModal";
+import InstructionsPanelHeader from "./InstructionsPanelHeader";
 
 export default function InstructionPanel({
   instructions,
@@ -56,88 +57,34 @@ export default function InstructionPanel({
     setDragOverIdx(null);
   };
 
+  const generateResultString = (
+    bytesSlice: number[],
+    instructionType: InstructionType
+  ) => {
+    if (instructionType === InstructionType.STRING) {
+      return bytesSlice.map((b) => String.fromCharCode(b)).join("");
+    } else if (instructionType === InstructionType.DECIMAL) {
+      return bytesSlice.reduce((acc, b) => acc + b, 0).toString();
+    } else if (instructionType === InstructionType.RAW) {
+      return bytesSlice.join(" ");
+    }
+    return "";
+  };
+
   return (
     <section className={styles.instructionSection}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "0.5rem",
-        }}
-      >
-        <span style={{ fontWeight: "bold" }}>Instructions</span>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <button
-            type="button"
-            className={styles.plusButton}
-            onClick={() => setShowModal(true)}
-            title="Add instruction"
-          >
-            +
-          </button>
-          <button
-            type="button"
-            className={styles.plusButton}
-            title="Save configuration"
-            onClick={() => {
-              const data = {
-                instructions,
-              };
-              const blob = new Blob([JSON.stringify(data, null, 2)], {
-                type: "application/json",
-              });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "demparser-config.json";
-              a.click();
-              URL.revokeObjectURL(url);
-            }}
-          >
-            💾
-          </button>
-          <label
-            htmlFor="load-config"
-            className={styles.plusButton}
-            title="Load configuration"
-            style={{ cursor: "pointer", margin: 0 }}
-          >
-            📂
-            <input
-              id="load-config"
-              type="file"
-              accept="application/json"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                  try {
-                    const json = JSON.parse(ev.target?.result as string);
-                    if (json.instructions) {
-                      setInstructions(json.instructions);
-                    }
-                  } catch (err) {
-                    alert("Invalid configuration file.");
-                    console.error("Error parsing JSON:", err);
-                  }
-                };
-                reader.readAsText(file);
-              }}
-            />
-          </label>
-        </div>
-      </div>
+      <InstructionsPanelHeader
+        instructions={instructions}
+        setInstructions={setInstructions}
+        setShowModal={setShowModal}
+      />
       <table className={styles.instructionTable}>
         <thead>
           <tr>
-            <th>#</th>
+            <th>Offset</th>
             <th>Type</th>
             <th>Label</th>
             <th>Length</th>
-            <th>Hold Value</th>
             <th>Color</th>
             <th>Result</th>
             <th></th>
@@ -146,15 +93,14 @@ export default function InstructionPanel({
         <tbody>
           {(() => {
             let currentIndex = 0;
-            return instructions.map((inst, idx) => {
-              const start = currentIndex;
+            return instructions.map((inst: Instruction, idx) => {
+              const currentOffset = currentIndex;
               const end = currentIndex + inst.bytesLength;
-              const bytesSlice = bytes.slice(start, end);
-              const resultStr = bytesSlice
-                .map((b) =>
-                  b >= 32 && b <= 126 ? String.fromCharCode(b) : "."
-                )
-                .join("");
+              const resultStr = generateResultString(
+                bytes.slice(currentOffset, end),
+                inst.type
+              );
+
               currentIndex = end;
 
               return (
@@ -175,17 +121,12 @@ export default function InstructionPanel({
                         : undefined,
                   }}
                 >
-                  <td>{idx + 1}</td>
+                  <td>{currentOffset}</td>
                   <td>{inst.type}</td>
                   <td>{inst.label}</td>
                   <td>{inst.bytesLength}</td>
-                  <td>{start}</td>
                   <td>{inst.color}</td>
-                  <td>
-                    {resultStr.length > 10
-                      ? resultStr.slice(0, 10) + "➕"
-                      : resultStr}
-                  </td>
+                  <td>{resultStr}</td>
                   <td>
                     <span onClick={() => handleDelete(idx)}>🗑️</span>
                     <span onClick={() => moveInstruction(idx, idx - 1)}>

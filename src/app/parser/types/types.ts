@@ -1,8 +1,8 @@
 export type Instruction = {
-  type: string;
+  type: InstructionType;
+  offset: number;
   label: string;
   bytesLength: number;
-  holdValue: number;
   color: string;
 };
 
